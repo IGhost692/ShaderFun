@@ -5,6 +5,8 @@ Shader "Custom/Hologram"
     {
         _MainTex ("Texture", 2D) = "white" {}
 		_Color("Color", Color) = (1, 1, 1, 1)
+		_DistortLineDensity("DistortLineDensity", float) = 75.0
+		_DistortLineColor("DistortLineColor", Color) = (1, 1, 1, 1)
 		_ScanLineDist("ScanLinesDensity", float) = 100.0
 		_LineMoveSpeed("LinesMoveSpeed", float) = 10.0
 		_Bias("Bias", Range(-1, 1)) = 0
@@ -50,6 +52,8 @@ Shader "Custom/Hologram"
 			float _LineMoveSpeed;
 			float _Bias;
 			float _UseTexture;
+			float _DistortLineDensity;
+			fixed4 _DistortLineColor;
 
             v2f vert (appdata v)
             {
@@ -65,7 +69,7 @@ Shader "Custom/Hologram"
             {
                 // sample the texture
 				fixed4 col;
-				if (_UseTexture == 0)
+				if (_UseTexture < 0.5)
 				{
 					col = _Color * max(0 ,cos(i.WorldVertPosition.y * _ScanLineDist + _Time.x * _LineMoveSpeed) + _Bias);
 					col *= _Color * max(0, cos(i.WorldVertPosition.x * _ScanLineDist + _Time.x * _LineMoveSpeed) + _Bias);
@@ -76,6 +80,11 @@ Shader "Custom/Hologram"
 					col = tex2D(_MainTex, i.uv) * max(0 ,cos(i.WorldVertPosition.y * _ScanLineDist + _Time.x * _LineMoveSpeed) + _Bias);
 					col *= tex2D(_MainTex, i.uv) * max(0, cos(i.WorldVertPosition.x * _ScanLineDist + _Time.x * _LineMoveSpeed) + _Bias);
 					col *= tex2D(_MainTex, i.uv) * max(0, cos(i.WorldVertPosition.z * _ScanLineDist + _Time.x * _LineMoveSpeed) + _Bias);
+				}
+
+				if (sin(abs((i.WorldVertPosition.y * _DistortLineDensity) - _Time.z)) > 0.9999f)
+				{
+					col = _DistortLineColor;
 				}
 
 				// apply fog
